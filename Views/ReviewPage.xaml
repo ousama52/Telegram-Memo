@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Telegram_Memo_App.Views.ReviewPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Telegram_Memo_App.ViewModels"
+    x:DataType="vm:ReviewViewModel"
+    SafeAreaEdges="All">
+
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior ApplyOn="OnPageNavigatedTo" StatusBarColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
+    </ContentPage.Behaviors>
+
+    <Grid>
+        <Grid RowDefinitions="*,Auto">
+            <ScrollView x:Name="Scroller">
+                <VerticalStackLayout Padding="16,12,16,16" Spacing="14">
+
+                    <!-- Photo -->
+                    <Border
+                        x:Name="PhotoFrame"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Surface2Light}, Dark={StaticResource SurfaceDark}}"
+                        HeightRequest="440"
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="0">
+                        <Image Aspect="AspectFill" Source="{Binding PhotoPath}" />
+                    </Border>
+
+                    <!-- Info row -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <Image HeightRequest="18" Source="ic_pin.png" VerticalOptions="Center" WidthRequest="18">
+                            <Image.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource MutedLight}, Dark={StaticResource MutedDark}}" />
+                            </Image.Behaviors>
+                        </Image>
+                        <Label Grid.Column="1" FontSize="14" Text="{Binding LocationText}" VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger Binding="{Binding HasLocation}" TargetType="Label" Value="True">
+                                    <Setter Property="TextColor" Value="{StaticResource Success}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding HasLocation}" TargetType="Label" Value="False">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MutedLight}, Dark={StaticResource MutedDark}}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <Label Grid.Column="2" Style="{StaticResource MutedLabel}" FontSize="14" Text="{Binding TimeText}" VerticalOptions="Center" />
+                    </Grid>
+
+                    <!-- Preview button -->
+                    <Button
+                        Clicked="OnPreviewClicked"
+                        ContentLayout="Left,8"
+                        HorizontalOptions="Start"
+                        ImageSource="ic_eye.png"
+                        Style="{StaticResource SmallButton}"
+                        Text="Preview">
+                        <Button.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
+                        </Button.Behaviors>
+                    </Button>
+
+                    <!-- Note -->
+                    <Border Padding="12,6" Style="{StaticResource InputBox}">
+                        <Editor
+                            x:Name="NoteEditor"
+                            AutoSize="TextChanges"
+                            Focused="OnNoteFocused"
+                            MinimumHeightRequest="96"
+                            Placeholder="Write a note... (optional)"
+                            Text="{Binding Note}" />
+                    </Border>
+                    <Label
+                        Margin="0,-6,4,0"
+                        HorizontalOptions="End"
+                        Style="{StaticResource MutedLabel}"
+                        Text="{Binding CounterText}" />
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- Buttons stay above the keyboard (AdjustResize + SafeAreaEdges=All) -->
+            <Grid
+                Grid.Row="1"
+                Padding="16,8,16,16"
+                ColumnDefinitions="*,2*"
+                ColumnSpacing="12">
+                <Button Command="{Binding RetakeCommand}" Style="{StaticResource SecondaryButton}" Text="Retake" />
+                <Button
+                    Grid.Column="1"
+                    Command="{Binding SendCommand}"
+                    ContentLayout="Left,10"
+                    ImageSource="ic_send.png"
+                    Text="Send" />
+            </Grid>
+        </Grid>
+
+        <!-- Preview bottom sheet -->
+        <Grid x:Name="PreviewOverlay" IsVisible="False">
+            <BoxView x:Name="PreviewDim" BackgroundColor="#99000000" Opacity="0">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnPreviewClose" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <Border
+                x:Name="PreviewSheet"
+                Padding="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource ChatBackgroundLight}, Dark={StaticResource ChatBackgroundDark}}"
+                MaximumHeightRequest="640"
+                StrokeShape="RoundRectangle 24,24,0,0"
+                StrokeThickness="0"
+                VerticalOptions="End">
+                <Grid RowDefinitions="Auto,Auto,*" Padding="0,10,0,16">
+                    <BoxView
+                        BackgroundColor="{AppThemeBinding Light={StaticResource MutedLight}, Dark={StaticResource MutedDark}}"
+                        CornerRadius="2"
+                        HeightRequest="4"
+                        HorizontalOptions="Center"
+                        Opacity="0.6"
+                        WidthRequest="40" />
+                    <Grid Grid.Row="1" Padding="20,10,8,6" ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label FontFamily="OpenSansSemibold" FontSize="17" Text="Preview" />
+                            <Label Style="{StaticResource MutedLabel}" Text="How the memo will look in Telegram" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1" Clicked="OnPreviewClose" Style="{StaticResource TextButton}" Text="Close" />
+                    </Grid>
+
+                    <ScrollView Grid.Row="2">
+                        <VerticalStackLayout Padding="16,8" Spacing="6">
+
+                            <!-- Photo with caption -->
+                            <Border
+                                Padding="0"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BubbleLight}, Dark={StaticResource BubbleDark}}"
+                                HorizontalOptions="Start"
+                                StrokeShape="RoundRectangle 16,16,4,16"
+                                StrokeThickness="0"
+                                WidthRequest="300">
+                                <VerticalStackLayout>
+                                    <Image Aspect="AspectFill" HeightRequest="260" Source="{Binding PhotoPath}" />
+                                    <Label Margin="12,8,12,0" FontSize="15" Text="{Binding PreviewCaption}" />
+                                    <Label
+                                        Margin="12,2,12,8"
+                                        FontSize="12"
+                                        HorizontalOptions="End"
+                                        Style="{StaticResource MutedLabel}"
+                                        Text="{Binding PreviewTime}" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Long note as separate messages -->
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding PreviewExtraMessages}" Spacing="6">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Border
+                                            Padding="12,8"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource BubbleLight}, Dark={StaticResource BubbleDark}}"
+                                            HorizontalOptions="Start"
+                                            MaximumWidthRequest="300"
+                                            StrokeShape="RoundRectangle 16,16,4,16"
+                                            StrokeThickness="0">
+                                            <Label FontSize="15" Text="{Binding .}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <!-- Map pin -->
+                            <Border
+                                Padding="12,10"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BubbleLight}, Dark={StaticResource BubbleDark}}"
+                                HorizontalOptions="Start"
+                                IsVisible="{Binding HasLocation}"
+                                StrokeShape="RoundRectangle 16,16,4,16"
+                                StrokeThickness="0"
+                                WidthRequest="300">
+                                <HorizontalStackLayout Spacing="10">
+                                    <Image HeightRequest="22" Source="ic_pin.png" VerticalOptions="Center" WidthRequest="22">
+                                        <Image.Behaviors>
+                                            <toolkit:IconTintColorBehavior TintColor="{StaticResource Accent}" />
+                                        </Image.Behaviors>
+                                    </Image>
+                                    <VerticalStackLayout VerticalOptions="Center">
+                                        <Label FontFamily="OpenSansSemibold" FontSize="14" Text="Location" />
+                                        <Label Style="{StaticResource MutedLabel}" Text="Map pin" />
+                                    </VerticalStackLayout>
+                                </HorizontalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

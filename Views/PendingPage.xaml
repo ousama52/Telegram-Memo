@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Telegram_Memo_App.Views.PendingPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Telegram_Memo_App.ViewModels"
+    x:DataType="vm:PendingViewModel"
+    SafeAreaEdges="Container">
+
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior ApplyOn="OnPageNavigatedTo" StatusBarColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Header -->
+        <Grid Padding="8,8,16,8" ColumnDefinitions="Auto,*,Auto">
+            <ImageButton Command="{Binding BackCommand}" Source="ic_back.png" Style="{StaticResource IconButton}">
+                <ImageButton.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
+                </ImageButton.Behaviors>
+            </ImageButton>
+            <Label Grid.Column="1" Margin="4,0,0,0" Style="{StaticResource TitleLabel}" Text="Pending memos" />
+            <Button
+                Grid.Column="2"
+                Command="{Binding RetryCommand}"
+                ContentLayout="Left,6"
+                ImageSource="ic_refresh.png"
+                IsEnabled="{Binding IsRetrying, Converter={StaticResource InvertedBoolConverter}}"
+                IsVisible="{Binding IsEmpty, Converter={StaticResource InvertedBoolConverter}}"
+                Style="{StaticResource SmallButton}"
+                Text="Retry now">
+                <Button.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="{StaticResource Accent}" />
+                </Button.Behaviors>
+            </Button>
+        </Grid>
+
+        <Label
+            Grid.Row="1"
+            Margin="20,0,20,8"
+            IsVisible="{Binding Hint, Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
+            Style="{StaticResource MutedLabel}"
+            Text="{Binding Hint}" />
+
+        <!-- List -->
+        <CollectionView Grid.Row="2" IsVisible="{Binding IsEmpty, Converter={StaticResource InvertedBoolConverter}}" ItemsSource="{Binding Items}">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.Header>
+                <BoxView HeightRequest="2" Color="Transparent" />
+            </CollectionView.Header>
+            <CollectionView.Footer>
+                <BoxView HeightRequest="24" Color="Transparent" />
+            </CollectionView.Footer>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:PendingItem">
+                    <Border Margin="16,0" Padding="10" Style="{StaticResource Card}">
+                        <Grid ColumnDefinitions="72,*" ColumnSpacing="14">
+                            <Border HeightRequest="72" StrokeShape="RoundRectangle 12" StrokeThickness="0" WidthRequest="72">
+                                <Image Aspect="AspectFill" Source="{Binding PhotoPath}" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                <Label FontFamily="OpenSansSemibold" LineBreakMode="TailTruncation" MaxLines="1" Text="{Binding Title}" />
+                                <Label Style="{StaticResource MutedLabel}" Text="{Binding TimeText}" />
+                                <HorizontalStackLayout Spacing="6">
+                                    <Ellipse Fill="{Binding StatusColor}" HeightRequest="8" VerticalOptions="Center" WidthRequest="8" />
+                                    <Label FontFamily="OpenSansSemibold" FontSize="13" Text="{Binding StatusText}" TextColor="{Binding StatusColor}" />
+                                </HorizontalStackLayout>
+                                <Label
+                                    FontSize="12"
+                                    IsVisible="{Binding HasDetail}"
+                                    LineBreakMode="TailTruncation"
+                                    MaxLines="2"
+                                    Style="{StaticResource MutedLabel}"
+                                    Text="{Binding Detail}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Empty state -->
+        <VerticalStackLayout
+            Grid.Row="2"
+            Padding="32"
+            IsVisible="{Binding IsEmpty}"
+            Spacing="12"
+            VerticalOptions="Center">
+            <Image HeightRequest="140" Source="ill_done.png" WidthRequest="140" />
+            <Label
+                Margin="0,12,0,0"
+                FontFamily="OpenSansSemibold"
+                FontSize="20"
+                HorizontalTextAlignment="Center"
+                Text="All memos sent" />
+            <Label
+                FontSize="15"
+                HorizontalTextAlignment="Center"
+                Style="{StaticResource MutedLabel}"
+                Text="Everything is in your Telegram channel." />
+            <Button
+                Margin="0,12,0,0"
+                Command="{Binding OpenChannelCommand}"
+                ContentLayout="Left,10"
+                HorizontalOptions="Center"
+                ImageSource="ic_send.png"
+                Text="View in Telegram" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

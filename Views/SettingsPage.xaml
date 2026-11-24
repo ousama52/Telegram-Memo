@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Telegram_Memo_App.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Telegram_Memo_App.ViewModels"
+    x:DataType="vm:SettingsViewModel"
+    SafeAreaEdges="All">
+
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior ApplyOn="OnPageNavigatedTo" StatusBarColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <Grid Padding="8,8,16,8" ColumnDefinitions="Auto,*">
+            <ImageButton Command="{Binding BackCommand}" Source="ic_back.png" Style="{StaticResource IconButton}">
+                <ImageButton.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
+                </ImageButton.Behaviors>
+            </ImageButton>
+            <Label Grid.Column="1" Margin="4,0,0,0" Style="{StaticResource TitleLabel}" Text="Settings" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,8,20,32" Spacing="12">
+
+                <!-- First-run banner -->
+                <Border IsVisible="{Binding IsConfigured, Converter={StaticResource InvertedBoolConverter}}" Style="{StaticResource Banner}">
+                    <Label LineBreakMode="WordWrap" Text="Telegram not set up yet. Memos will be saved on this phone until you finish setup." />
+                </Border>
+
+                <!-- Bot token -->
+                <Label Margin="4,8,0,0" Style="{StaticResource SectionLabel}" Text="Bot token" />
+                <Border Style="{StaticResource InputBox}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Entry
+                            IsPassword="{Binding IsTokenHidden}"
+                            IsSpellCheckEnabled="False"
+                            IsTextPredictionEnabled="False"
+                            Keyboard="Plain"
+                            Placeholder="123456:ABC-DEF..."
+                            Text="{Binding BotToken}" />
+                        <ImageButton
+                            Grid.Column="1"
+                            Command="{Binding ToggleTokenCommand}"
+                            Source="{Binding TokenEyeIcon}"
+                            Style="{StaticResource IconButton}">
+                            <ImageButton.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Light={StaticResource MutedLight}, Dark={StaticResource MutedDark}}" />
+                            </ImageButton.Behaviors>
+                        </ImageButton>
+                    </Grid>
+                </Border>
+                <Label Style="{StaticResource HelperLabel}" Text="From @BotFather. Stored securely on this phone only." />
+
+                <!-- Chat ID -->
+                <Label Margin="4,12,0,0" Style="{StaticResource SectionLabel}" Text="Channel chat ID" />
+                <Border Style="{StaticResource InputBox}">
+                    <Entry
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False"
+                        Keyboard="Plain"
+                        Placeholder="@channelname or -100123456789"
+                        Text="{Binding ChatId}" />
+                </Border>
+                <Label Style="{StaticResource HelperLabel}" Text="Use @channelname or a number like -100123456789" />
+                <Button
+                    Command="{Binding DetectChatIdCommand}"
+                    HorizontalOptions="Start"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
+                    Style="{StaticResource SmallButton}"
+                    Text="Detect chat ID" />
+                <Label
+                    IsVisible="{Binding ChatIdMessage, Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
+                    Style="{StaticResource HelperLabel}"
+                    Text="{Binding ChatIdMessage}" />
+                <Label
+                    IsVisible="{Binding ValidationMessage, Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
+                    Margin="4,0,0,0"
+                    FontSize="13"
+                    Text="{Binding ValidationMessage}"
+                    TextColor="{StaticResource Error}" />
+
+                <!-- Test message -->
+                <Button
+                    Margin="0,16,0,0"
+                    Command="{Binding SendTestCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
+                    Style="{StaticResource SecondaryButton}"
+                    Text="Send test message" />
+                <HorizontalStackLayout IsVisible="{Binding IsTestSuccess}" Margin="4,0,0,0" Spacing="8">
+                    <Image HeightRequest="18" Source="ic_check.png" VerticalOptions="Center" WidthRequest="18">
+                        <Image.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="{StaticResource Success}" />
+                        </Image.Behaviors>
+                    </Image>
+                    <Label Text="{Binding TestMessage}" TextColor="{StaticResource Success}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Grid IsVisible="{Binding IsTestError}" Margin="4,0,0,0" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <Image HeightRequest="18" Source="ic_alert.png" VerticalOptions="Start" WidthRequest="18" Margin="0,1,0,0">
+                        <Image.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="{StaticResource Error}" />
+                        </Image.Behaviors>
+                    </Image>
+                    <Label Grid.Column="1" Text="{Binding TestMessage}" TextColor="{StaticResource Error}" />
+                </Grid>
+                <ActivityIndicator HeightRequest="24" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+                <!-- Go to channel -->
+                <Button
+                    Margin="0,8,0,0"
+                    Command="{Binding OpenChannelCommand}"
+                    ContentLayout="Left,10"
+                    ImageSource="ic_send.png"
+                    IsEnabled="{Binding CanOpenChannel}"
+                    Style="{StaticResource SecondaryButton}"
+                    Text="Go to Telegram channel">
+                    <Button.Behaviors>
+                        <toolkit:IconTintColorBehavior TintColor="{StaticResource Accent}" />
+                    </Button.Behaviors>
+                </Button>
+                <Label
+                    IsVisible="{Binding CanOpenChannel, Converter={StaticResource InvertedBoolConverter}}"
+                    Style="{StaticResource HelperLabel}"
+                    Text="Enter the chat ID first" />
+
+                <Button Margin="0,16,0,0" Command="{Binding SaveCommand}" Text="Save" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

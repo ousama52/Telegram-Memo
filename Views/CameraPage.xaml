@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Telegram_Memo_App.Views.CameraPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Telegram_Memo_App.ViewModels"
+    x:DataType="vm:CameraViewModel"
+    BackgroundColor="Black"
+    SafeAreaEdges="None">
+
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior ApplyOn="OnPageNavigatedTo" StatusBarColor="Black" StatusBarStyle="LightContent" />
+    </ContentPage.Behaviors>
+
+    <Grid>
+        <!-- The CameraView is added here in code once camera permission is granted. -->
+        <Grid x:Name="CameraHost" />
+
+        <!-- Fallback: permission denied or no camera -->
+        <Grid
+            Padding="32"
+            SafeAreaEdges="Container"
+            BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}"
+            IsVisible="{Binding ShowFallback}"
+            RowDefinitions="*,Auto,Auto,Auto,*,Auto">
+            <Image Grid.Row="1" HeightRequest="140" Source="ill_camera.png" WidthRequest="140" />
+            <Label
+                Grid.Row="2"
+                Margin="0,24,0,8"
+                FontFamily="OpenSansSemibold"
+                FontSize="20"
+                HorizontalTextAlignment="Center"
+                Text="{Binding FallbackTitle}" />
+            <VerticalStackLayout Grid.Row="3" Spacing="4">
+                <Label HorizontalTextAlignment="Center" Style="{StaticResource MutedLabel}" FontSize="15" Text="{Binding FallbackText}" />
+                <Button Command="{Binding OpenAppSettingsCommand}" HorizontalOptions="Center" Style="{StaticResource TextButton}" Text="Open settings" />
+            </VerticalStackLayout>
+            <Button
+                Grid.Row="5"
+                Margin="0,0,0,24"
+                Command="{Binding RetryPermissionCommand}"
+                HeightRequest="60"
+                Text="Take photo" />
+        </Grid>
+
+        <!-- Top bar: location chip, camera switch, pending badge -->
+        <Grid
+            x:Name="TopBar"
+            Padding="16,12,16,0"
+            SafeAreaEdges="Container"
+            ColumnDefinitions="*,Auto,*"
+            VerticalOptions="Start">
+            <Border HorizontalOptions="Start" IsVisible="{Binding ShowControls}" Style="{StaticResource CameraChip}">
+                <HorizontalStackLayout Spacing="8">
+                    <ActivityIndicator
+                        HeightRequest="14"
+                        IsRunning="{Binding IsLocating}"
+                        IsVisible="{Binding IsLocating}"
+                        VerticalOptions="Center"
+                        WidthRequest="14"
+                        Color="{StaticResource CameraText}" />
+                    <Ellipse
+                        Fill="{StaticResource Success}"
+                        HeightRequest="9"
+                        IsVisible="{Binding IsLocationReady}"
+                        VerticalOptions="Center"
+                        WidthRequest="9" />
+                    <Ellipse
+                        Fill="{StaticResource CameraMuted}"
+                        HeightRequest="9"
+                        IsVisible="{Binding IsLocationMissing}"
+                        VerticalOptions="Center"
+                        WidthRequest="9" />
+                    <Label Style="{StaticResource CameraLabel}" Text="{Binding LocationText}">
+                        <Label.Triggers>
+                            <DataTrigger Binding="{Binding IsLocationMissing}" TargetType="Label" Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource CameraMuted}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border
+                Grid.Column="2"
+                HorizontalOptions="End"
+                IsVisible="{Binding HasPending}"
+                Style="{StaticResource CameraChip}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenPendingCommand}" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="8">
+                    <Image HeightRequest="16" Source="ic_cloud_off.png" VerticalOptions="Center" WidthRequest="16" />
+                    <Label Style="{StaticResource CameraLabel}" Text="{Binding PendingText}" />
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Bottom bar: settings, shutter, Telegram -->
+        <Grid
+            Padding="32,0,32,32"
+            SafeAreaEdges="Container"
+            ColumnDefinitions="*,Auto,*"
+            IsVisible="{Binding ShowControls}"
+            RowDefinitions="Auto,Auto"
+            RowSpacing="20"
+            VerticalOptions="End">
+
+            <!-- Front/back switch, just above the shutter -->
+            <ImageButton
+                Grid.Column="1"
+                Clicked="OnSwitchCameraClicked"
+                HorizontalOptions="Center"
+                IsVisible="{Binding CanSwitchCamera}"
+                SemanticProperties.Description="Switch camera"
+                Source="ic_switch_camera.png"
+                Style="{StaticResource SmallCameraIconButton}" />
+
+            <ImageButton
+                Grid.Row="1"
+                Command="{Binding OpenSettingsCommand}"
+                HorizontalOptions="Start"
+                SemanticProperties.Description="Settings"
+                Source="ic_settings.png"
+                Style="{StaticResource CameraIconButton}"
+                VerticalOptions="Center" />
+
+            <Grid Grid.Row="1" Grid.Column="1" HeightRequest="84" WidthRequest="84">
+                <Ellipse Stroke="{StaticResource White}" StrokeThickness="4" />
+                <Button
+                    x:Name="ShutterButton"
+                    BackgroundColor="{StaticResource White}"
+                    Clicked="OnShutterClicked"
+                    CornerRadius="34"
+                    HeightRequest="68"
+                    HorizontalOptions="Center"
+                    SemanticProperties.Description="Take photo"
+                    VerticalOptions="Center"
+                    WidthRequest="68" />
+                <ActivityIndicator
+                    HeightRequest="32"
+                    InputTransparent="True"
+                    IsRunning="{Binding IsCapturing}"
+                    IsVisible="{Binding IsCapturing}"
+                    WidthRequest="32" />
+            </Grid>
+
+            <ImageButton
+                Grid.Row="1"
+                Grid.Column="2"
+                Command="{Binding OpenChannelCommand}"
+                HorizontalOptions="End"
+                SemanticProperties.Description="Open Telegram channel"
+                Source="ic_send.png"
+                Style="{StaticResource CameraIconButton}"
+                VerticalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>
